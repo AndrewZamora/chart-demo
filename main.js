@@ -1,44 +1,72 @@
-async function getData(){
-    const reponse = await fetch('test-data.csv');
-    const data = await reponse.text();
-    
-}
-getData()
 
-var ctx = document.getElementById('myChart').getContext('2d');
-var myChart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-        datasets: [{
-            label: 'covid_19_daily_reports',
-            data: [12, 19, 3, 5, 2, 3],
-            backgroundColor: [
-                'rgba(255, 99, 132, 0.2)',
-                'rgba(54, 162, 235, 0.2)',
-                'rgba(255, 206, 86, 0.2)',
-                'rgba(75, 192, 192, 0.2)',
-                'rgba(153, 102, 255, 0.2)',
-                'rgba(255, 159, 64, 0.2)'
-            ],
-            borderColor: [
-                'rgba(255, 99, 132, 1)',
-                'rgba(54, 162, 235, 1)',
-                'rgba(255, 206, 86, 1)',
-                'rgba(75, 192, 192, 1)',
-                'rgba(153, 102, 255, 1)',
-                'rgba(255, 159, 64, 1)'
-            ],
-            borderWidth: 1
-        }]
-    },
-    options: {
-        scales: {
-            yAxes: [{
-                ticks: {
-                    beginAtZero: true
-                }
-            }]
+(async () => {
+    async function getData() {
+        const reponse = await fetch('test-data.csv');
+        const data = await reponse.text();
+        const parsedData = data.split('\n');
+        const labels = parsedData[0].split(',');
+        const formattedData = parsedData.slice(1).map(item => {
+            const set = item.split(',');
+            return {
+                province_state: set[0],
+                country_region: set[1],
+                last_update: set[2],
+                confirmed: set[3],
+                deaths: set[4],
+                recovered: set[5],
+                latitude: set[6],
+                longitude: set[7]
+            }
+        })
+        return {
+            data: formattedData
         }
     }
-});
+    const { data } = await getData();
+    let countries = [];
+    let confirmed = []
+    data.forEach(item => {
+        if (item.country_region && !countries.includes(item.country_region)) {
+            countries.push(item.country_region);
+        }
+    });
+    console.log(data)
+    const ctx = document.getElementById('myChart').getContext('2d');
+
+    const myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ["0-19", "20-44", "45-54", "55-64", "65-74", "75-84", ">=85"],
+            datasets: [{
+                label: 'Hospitalization',
+                data: [1.6, 14.3, 21.2, 20.5, 28.6, 30.5, 70.3],
+                borderColor: 'black',
+                backgroundColor: '#ff833a',
+                borderWidth: 1
+            },
+            {
+                label: 'ICU admission',
+                data: [0, 4.2, 10.4, 11.2, 18.8, 31.0, 29.0],
+                borderColor: 'black',
+                backgroundColor: '#e65100',
+                borderWidth: 1
+            },
+            {
+                label: 'Case-fatality',
+                data: [0, 0.2, 0.8, 2.6, 4.9, 10.5, 27.3],
+                borderColor: 'black',
+                backgroundColor: '#ac1900',
+                borderWidth: 1
+            },
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+        },
+
+    });
+})()
+
+
+
